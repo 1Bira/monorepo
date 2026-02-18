@@ -3,6 +3,9 @@ on:
   push:
     branches:
     - main
+    paths:
+      - 'apps/app1/**' # Só dispara se houver mudanças aqui
+
 
 jobs:
   build-and-test:
@@ -10,5 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Hello world action step
-        run: echo "Hello world"
+      - uses: actions/checkout@v4
+      - script: |
+          npm install
+        working-directory: ./apps/app1
+        displayName: 'npm install'
+      
