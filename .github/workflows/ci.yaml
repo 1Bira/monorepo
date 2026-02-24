@@ -54,7 +54,10 @@ jobs:
           fi
       - name: Build-app
         run: |
-          npm install
-          npm run build
+          npm ci
+        working-directory: ./apps/app1
+
+      - name: Build Function App
+        run: npm run build --if-present
         working-directory: ./apps/app1
       
