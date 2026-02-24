@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Necessário para o git diff funcionar corretamente
-          
+
       - name: Detect Changed Files
         id: set-matrix
         run: |
@@ -57,5 +57,4 @@ jobs:
           npm install
           npm run build
         working-directory: ./apps/app1
-        displayName: 'npm install'
       
