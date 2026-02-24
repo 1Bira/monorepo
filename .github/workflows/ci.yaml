@@ -11,9 +11,47 @@ jobs:
   build-and-test:
     name: "Build"
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      run_build: ${{ steps.set-matrix.outputs.run_build }}
+      
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessário para o git diff funcionar corretamente
+          
+      - name: Detect Changed Files
+        id: set-matrix
+        run: |
+          # Detecta arquivos alterados entre a branch atual e a base
+          DIFF=$(git diff --name-only ${{ github.event.before || 'HEAD~1' }} HEAD)
+          
+          echo "Arquivos alterados: $DIFF"
+
+          # Verifica se houve mudanças no código compartilhado
+          SHARED_CHANGES=$(echo "$DIFF" | grep -E '^(shared/|tooling/|shared-svc/)' || true)
+          
+          if [ ! -z "$SHARED_CHANGES" ]; then
+            echo "Mudança em código compartilhado detectada. Selecionando todas as funções."
+            # Busca todas as pastas dentro de packages/functions
+            FUNCTIONS=$(ls -d packages/functions/* | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "matrix=$FUNCTIONS" >> $GITHUB_OUTPUT
+            echo "run_build=true" >> $GITHUB_OUTPUT
+          else
+            # Busca apenas as funções específicas que mudaram
+            FUNCTIONS=$(echo "$DIFF" | grep '^packages/functions/' | cut -d'/' -f1-3 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            
+            if [ "$FUNCTIONS" != "[]" ]; then
+              echo "Mudanças detectadas em funções específicas: $FUNCTIONS"
+              echo "matrix=$FUNCTIONS" >> $GITHUB_OUTPUT
+              echo "run_build=true" >> $GITHUB_OUTPUT
+            else
+              echo "Nenhuma mudança relevante detectada."
+              echo "run_build=false" >> $GITHUB_OUTPUT
+            fi
+          fi
       - name: Build-app
         run: |
           npm install
