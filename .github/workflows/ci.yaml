@@ -6,16 +6,13 @@ on:
     paths:
       - 'apps/app1/**' # Só dispara se houver mudanças aqui
 
-
 jobs:
-  detect-changed:
+  detect-changes:
     name: "Detect Changes"
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
       run_build: ${{ steps.set-matrix.outputs.run_build }}
-      
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
